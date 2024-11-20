@@ -1,11 +1,12 @@
 export class Film {
-  private id: string;
-  private rating: number;
-  private director: string;
-  private tags: string[];
-  private title: string;
-  private about: string;
-  private description: string;
-  private image: string;
-  private cover: string;
+  id: string;
+  rating: number;
+  director: string;
+  tags: string[];
+  title: string;
+  about: string;
+  description: string;
+  image: string;
+  cover: string;
+  schedule: any;
 }
