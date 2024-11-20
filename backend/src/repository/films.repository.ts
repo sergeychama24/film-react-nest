@@ -10,7 +10,7 @@ export class FilmsRepository implements IFilmsRepository {
   constructor(@InjectModel(Film.name) private filmModel: Model<FilmDocument>) {}
 
   async findAll() {
-    const films = await this.filmModel.find().exec();
+    const films = await this.filmModel.find({}, { schedule: 0 }).exec();
     return {
       total: films.length,
       items: films,
