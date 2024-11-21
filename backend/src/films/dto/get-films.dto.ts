@@ -1,4 +1,3 @@
-//TODO описать DTO для запросов к /films
 import { Film } from '../entities/film.entity';
 
 export class getFilmsDto {
