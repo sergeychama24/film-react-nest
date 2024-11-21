@@ -26,7 +26,6 @@ export class FilmTicketDto {
   time: number;
 }
 
-//TODO реализовать DTO для /orders
 export class CreateOrderDto {
   @IsEmail()
   @IsNotEmpty()

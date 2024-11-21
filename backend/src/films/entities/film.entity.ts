@@ -1,3 +1,5 @@
+import { Schedule } from './schedule.entity';
+
 export class Film {
   id: string;
   rating: number;
@@ -8,5 +10,5 @@ export class Film {
   description: string;
   image: string;
   cover: string;
-  schedule: any;
+  schedule: Schedule[];
 }
