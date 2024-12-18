@@ -1,12 +1,18 @@
 services:
   postgres:
     image: postgres:17.2-alpine3.21
+    restart: always
     ports:
       - "5432:5432"
     environment:
       POSTGRES_USER: prac
       POSTGRES_PASSWORD: prac_pass
     volumes:
-      - ./test/01-prac.init.sql:/docker-entrypoint-initdb.d/01-prac.init.sql
-      - ./test/02-prac.films.sql:/docker-entrypoint-initdb.d/02-prac.films.sql
-      - ./test/03-prac.schedules.sql:/docker-entrypoint-initdb.d/03-prac.schedules.sql
+      - ./test/postgres/01-prac.init.sql:/docker-entrypoint-initdb.d/01-prac.init.sql
+      - ./test/postgres/02-prac.films.sql:/docker-entrypoint-initdb.d/02-prac.films.sql
+      - ./test/postgres/03-prac.schedules.sql:/docker-entrypoint-initdb.d/03-prac.schedules.sql
+  mongo:
+    image: mongodb/mongodb-community-server:latest
+    restart: always
+    ports:
+      - "27017:27017"
