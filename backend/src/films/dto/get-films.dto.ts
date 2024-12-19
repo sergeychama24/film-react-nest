@@ -1,6 +1,6 @@
-import { Film } from '../entities/film.entity';
+import { Films } from '../entities/film.entity';
 
 export class getFilmsDto {
   total: number;
-  items: Film[];
+  items: Films[];
 }
