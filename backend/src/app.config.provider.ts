@@ -6,6 +6,9 @@ export const configProvider = {
     database: {
       driver: process.env.DATABASE_DRIVER,
       url: process.env.DATABASE_URL,
+      username: process.env.DATABASE_USER,
+      password: process.env.DATABASE_PASSWORD,
+      db_name: process.env.DATABASE_NAME,
     },
   },
 };
@@ -15,6 +18,9 @@ export interface AppConfig {
 }
 
 export interface AppConfigDatabase {
-  driver: string;
+  driver: 'postgres' | 'mongodb';
   url: string;
+  username: string;
+  password: string;
+  db_name: string;
 }
