@@ -1,21 +1,26 @@
-import { IFilmsRepository } from './interfaces/films-repository.interface';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Film } from '../films/entities/film.entity';
-import { Model } from 'mongoose';
-import { FilmDocument } from '../films/schemas/film.schema';
+import { InjectRepository } from '@nestjs/typeorm';
 import { CreateOrderDto } from '../order/dto/order.dto';
+import { Films } from '../films/entities/film.entity';
+import { Repository } from 'typeorm';
+import { Schedules } from '../films/entities/schedule.entity';
 
 @Injectable()
-export class FilmsRepository implements IFilmsRepository {
-  constructor(@InjectModel(Film.name) private filmModel: Model<FilmDocument>) {}
+export class FilmsRepository {
+  constructor(
+    @InjectRepository(Films)
+    private readonly filmsRepository: Repository<Films>,
+
+    @InjectRepository(Schedules)
+    private readonly schedulesRepository: Repository<Schedules>,
+  ) {}
 
   async findAll() {
-    const films = await this.filmModel.find({}, { schedule: 0 }).exec();
+    const films = await this.filmsRepository.find();
     return {
       total: films.length,
       items: films,
@@ -23,16 +28,18 @@ export class FilmsRepository implements IFilmsRepository {
   }
 
   async findSchedule(id: string) {
-    const filmSchedule = await this.filmModel
-      .findOne({ id })
-      .select('schedule')
-      .exec();
-    if (!filmSchedule) {
-      throw new NotFoundException(`Film with ID ${id} not found`);
+    const film = await this.filmsRepository.findOne({
+      where: { id },
+      relations: ['schedule'],
+    });
+
+    if (!film) {
+      throw new Error(`Film with ID ${id} not found`);
     }
+
     return {
-      total: filmSchedule.schedule.length,
-      items: filmSchedule.schedule,
+      total: film.schedule.length,
+      items: film.schedule,
     };
   }
 
@@ -40,32 +47,39 @@ export class FilmsRepository implements IFilmsRepository {
     for (const ticket of orderData.tickets) {
       const seat = `${ticket.row}:${ticket.seat}`;
 
-      const film = await this.filmModel.findOne({ id: ticket.film });
-      if (!film)
+      const film = await this.filmsRepository.findOne({
+        where: { id: ticket.film },
+      });
+
+      if (!film) {
         throw new NotFoundException(`Film with id ${ticket.film} not found`);
-
-      const session = film.schedule.find(
-        (session) => session.id === ticket.session.toString(),
-      );
-
-      if (!session)
-        throw new NotFoundException(
-          `Sense with id ${ticket.session} not found`,
-        );
-
-      if (session.taken.find((taken) => taken === seat)) {
-        throw new BadRequestException(`Place ${seat} is taken`);
       }
 
-      session.taken.push(seat);
+      const schedule = await this.schedulesRepository.findOne({
+        where: { id: ticket.session.toString() },
+      });
 
-      await this.filmModel.updateOne(
-        { id: ticket.film, 'schedule.id': ticket.session },
-        { $push: { 'schedule.$.taken': seat } },
-      );
+      if (!schedule) {
+        throw new NotFoundException(
+          `Schedule with id ${ticket.session} not found`,
+        );
+      }
+
+      const arr = schedule.taken.split(',');
+
+      if (arr.includes(seat)) {
+        throw new BadRequestException(`Place ${seat} is already taken`);
+      }
+
+      arr.push(seat);
+
+      await this.schedulesRepository.update(schedule.id, {
+        taken: arr.join(','),
+      });
     }
+
     return {
-      message: 'Order was successful created',
+      message: 'Order was successfully created',
     };
   }
 }

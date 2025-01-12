@@ -6,7 +6,9 @@ import { join } from 'path';
 import { configProvider } from './app.config.provider';
 import { FilmsModule } from './films/films.module';
 import { OrderModule } from './order/order.module';
-import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Films } from './films/entities/film.entity';
+import { Schedules } from './films/entities/schedule.entity';
 
 @Module({
   imports: [
@@ -14,7 +16,16 @@ import { MongooseModule } from '@nestjs/mongoose';
       isGlobal: true,
       cache: true,
     }),
-    MongooseModule.forRoot(process.env.DATABASE_URL),
+    TypeOrmModule.forRoot({
+      type: configProvider.useValue.database.driver,
+      host: 'localhost',
+      port: 5432,
+      username: configProvider.useValue.database.username,
+      password: configProvider.useValue.database.password,
+      database: configProvider.useValue.database.db_name,
+      entities: [Films, Schedules],
+      synchronize: true,
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public', 'content', 'afisha'),
       serveRoot: '/api/content/afisha',
